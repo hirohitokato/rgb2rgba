@@ -88,18 +88,11 @@ function App() {
 
       <section className="hero-panel">
         <p className="hero-panel__eyebrow">RGB to RGBA / browser-only</p>
-        <h1>RGB24/48 を RGBA32/64 の PNG に変換</h1>
+        <h1>RGB to RGBA Converter</h1>
         <p className="hero-panel__lead">
-          PNG は canvas を経由せず、チャンクとスキャンラインをそのまま扱って
-          <strong> bit depth と iCCP を保持</strong>します。JPEG はアルファを持てないため、
-          不透明アルファ付き PNG として書き出します。
+          指定したPNG/JPG画像をRGBA形式に変換し、アルファ付きPNGとして保存します。
+         PNG画像はiCCPを保持し、JPGはsRGBに変換したRGBA PNG画像に変換して書き出します。
         </p>
-
-        <div className="hero-panel__flow" aria-label="操作の流れ">
-          <span>1. 画像をドロップ</span>
-          <span>2. 解析結果を確認</span>
-          <span>3. RGBA PNG を保存</span>
-        </div>
       </section>
 
       <DropZone

@@ -17,11 +17,15 @@ async function transformCompression(
       : new DecompressionStream(format)
 
   const writer = stream.writable.getWriter()
-  await writer.write(cloneAsUint8Array(bytes))
-  await writer.close()
-
   const response = new Response(stream.readable)
-  return new Uint8Array(await response.arrayBuffer())
+  const writeTask = (async () => {
+    await writer.write(cloneAsUint8Array(bytes))
+    await writer.close()
+  })()
+  const readTask = response.arrayBuffer()
+  const [buffer] = await Promise.all([readTask, writeTask])
+
+  return new Uint8Array(buffer)
 }
 
 function cloneAsUint8Array(bytes: Uint8Array) {

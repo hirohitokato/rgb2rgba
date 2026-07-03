@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { deflateSync, inflateSync } from 'node:zlib'
 import { analyzeImageFile } from '../src/features/image-converter/lib/analyze.ts'
+import { deflateZlib, inflateZlib } from '../src/features/image-converter/lib/binary.ts'
 import { convertPngRgbToRgba, parsePngChunks, writeChunk } from '../src/features/image-converter/lib/png.ts'
 
 class TestFile extends Blob {
@@ -86,6 +87,26 @@ test('Adam7 PNG は未対応として弾く', async () => {
   assert.equal(analysis.status, 'unsupported')
 })
 
+test('大きい deflate payload でも inflateZlib が完走する', async () => {
+  const raw = createPatternBytes(8_000_000)
+  const compressed = new Uint8Array(deflateSync(raw))
+
+  const restored = await inflateZlib(compressed)
+
+  assert.equal(restored.length, raw.length)
+  assert.deepEqual(restored.subarray(0, 4096), raw.subarray(0, 4096))
+  assert.deepEqual(restored.subarray(-4096), raw.subarray(-4096))
+})
+
+test('deflateZlib と inflateZlib が大きい payload で往復できる', async () => {
+  const raw = createPatternBytes(8_000_000)
+
+  const compressed = await deflateZlib(raw)
+  const restored = await inflateZlib(compressed)
+
+  assert.deepEqual(restored, raw)
+})
+
 function createRgbPng(options: {
   width: number
   height: number
@@ -131,4 +152,14 @@ function createRgbPng(options: {
 
 function inflateNode(bytes: Uint8Array) {
   return new Uint8Array(inflateSync(bytes))
+}
+
+function createPatternBytes(length: number) {
+  const bytes = new Uint8Array(length)
+
+  for (let index = 0; index < bytes.length; index += 1) {
+    bytes[index] = (index * 31) & 0xff
+  }
+
+  return bytes
 }
