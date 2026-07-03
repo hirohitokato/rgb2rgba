@@ -5,14 +5,16 @@ type ConversionPanelProps = {
   file: File | null
   analysis: AnalyzedImage | null
   isConverting: boolean
-  onConvert: () => void | Promise<void>
+  hasConvertedOutput: boolean
+  onPrimaryAction: () => void | Promise<void>
 }
 
 export function ConversionPanel({
   file,
   analysis,
   isConverting,
-  onConvert,
+  hasConvertedOutput,
+  onPrimaryAction,
 }: ConversionPanelProps) {
   if (!file || !analysis) {
     return null
@@ -26,6 +28,18 @@ export function ConversionPanel({
       : analysis.kind === 'jpeg'
         ? '再埋め込みなし'
         : '該当なし'
+
+  const actionLabel = hasConvertedOutput
+    ? '変換した画像をダウンロードする'
+    : isConverting
+      ? '変換中…'
+      : analysis.kind === 'png'
+        ? `RGB${analysis.bitDepth === 16 ? '48' : '24'} PNG を RGBA${
+            analysis.bitDepth === 16 ? '64' : '32'
+          } PNG に変換する`
+        : analysis.kind === 'jpeg'
+          ? 'JPEG を RGBA32 PNG に変換する'
+          : '変換できません'
 
   return (
     <section className="conversion-panel">
@@ -103,16 +117,10 @@ export function ConversionPanel({
           className="primary-action"
           disabled={!analysis.canConvert || isConverting}
           onClick={() => {
-            void onConvert()
+            void onPrimaryAction()
           }}
         >
-          {isConverting
-            ? '変換中…'
-            : analysis.kind === 'png'
-              ? `RGBA${analysis.bitDepth === 16 ? '64' : '32'} PNG として保存`
-              : analysis.kind === 'jpeg'
-                ? 'RGBA PNG として保存'
-                : '変換できません'}
+          {actionLabel}
         </button>
       </footer>
     </section>

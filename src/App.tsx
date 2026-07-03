@@ -18,11 +18,18 @@ type AppState = {
   bytes: Uint8Array
 }
 
+type PreparedDownload = {
+  bytes: Uint8Array
+  filename: string
+  mimeType: string
+}
+
 function App() {
   const [appState, setAppState] = useState<AppState | null>(null)
   const [status, setStatus] = useState<ConversionResult | null>(null)
   const [dragWarning, setDragWarning] = useState<string | null>(null)
   const [isConverting, setIsConverting] = useState(false)
+  const [preparedDownload, setPreparedDownload] = useState<PreparedDownload | null>(null)
 
   async function loadFile(fileList: FileList | File[]) {
     const [file, ...rest] = Array.from(fileList)
@@ -39,6 +46,7 @@ function App() {
         : null,
     )
     setStatus(null)
+    setPreparedDownload(null)
 
     const bytes = new Uint8Array(await file.arrayBuffer())
     const analysis = await analyzeImageFile(file, bytes)
@@ -63,16 +71,23 @@ function App() {
         appState.analysis,
       )
 
-      downloadBytes(result.bytes, result.filename, 'image/png')
+      setPreparedDownload({
+        bytes: result.bytes,
+        filename: result.filename,
+        mimeType: 'image/png',
+      })
 
       setStatus({
         kind: 'success',
-        message: `${result.filename} を保存しました。出力サイズ: ${formatBytes(result.bytes.length)}`,
+        message: `${result.filename} の変換が完了しました。出力サイズ: ${formatBytes(
+          result.bytes.length,
+        )}。ダウンロードボタンから保存できます。`,
       })
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '不明なエラーが発生しました。'
 
+      setPreparedDownload(null)
       setStatus({
         kind: 'error',
         message: `変換に失敗しました: ${message}`,
@@ -80,6 +95,32 @@ function App() {
     } finally {
       setIsConverting(false)
     }
+  }
+
+  function handleDownload() {
+    if (!preparedDownload) {
+      return
+    }
+
+    downloadBytes(
+      preparedDownload.bytes,
+      preparedDownload.filename,
+      preparedDownload.mimeType,
+    )
+
+    setStatus({
+      kind: 'success',
+      message: `${preparedDownload.filename} をダウンロードしました。`,
+    })
+  }
+
+  function handlePrimaryAction() {
+    if (preparedDownload) {
+      handleDownload()
+      return
+    }
+
+    void handleConvert()
   }
 
   return (
@@ -108,7 +149,8 @@ function App() {
         file={appState?.file ?? null}
         analysis={appState?.analysis ?? null}
         isConverting={isConverting}
-        onConvert={handleConvert}
+        hasConvertedOutput={preparedDownload !== null}
+        onPrimaryAction={handlePrimaryAction}
       />
     </main>
   )
