@@ -1,32 +1,48 @@
-# React + TypeScript + Vite
+# rgb2rgba
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+ブラウザ上で PNG / JPEG を読み込み RGBA の PNG として保存する、シンプルな変換ツールです。
 
-Currently, two official plugins are available:
+![rgb2rgba screenshot](docs/screenshot.jpg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## できること
 
-## React Compiler
+- RGB24 PNG を RGBA32 PNG に変換
+- RGB48 PNG を RGBA64 PNG に変換
+- JPEG を不透明アルファ付きの RGBA PNG に変換
+- 変換前に形式、サイズ、ビット深度、アルファ有無、ICC / iCCP 有無を確認
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 特徴
 
-## Expanding the Oxlint configuration
+- 変換はブラウザ内だけで完結し、画像を外部にアップロードしません
+- RGB の PNG は canvas を経由せずに再構成するため、8bit / 16bit の bit depth を維持します
+- PNG に埋め込まれた `iCCP` は保持します
+- JPEG はブラウザでデコードした結果を PNG に書き出します
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 対応形式
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+- 入力: `PNG`, `JPEG`
+- 出力: `PNG`
+
+次のケースは変換対象外です。
+
+- すでに RGBA の PNG
+- grayscale / palette 系 PNG
+- Adam7 インターレース PNG
+
+## 動かし方
+
+```bash
+pnpm install
+pnpm dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+起動後、表示された URL をブラウザで開いてください。画像をドロップするか、クリックして選択すると解析結果が表示されます。変換ボタンを押すと `*_rgba.png` という名前で保存されます。
+
+## 補足
+
+- 複数ファイルをドロップした場合は先頭の 1 件だけを処理します
+- JPEG の ICC プロファイルは再埋め込みしません
+
+## ライセンス
+
+[MIT](LICENSE)
