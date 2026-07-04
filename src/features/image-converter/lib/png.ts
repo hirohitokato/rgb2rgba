@@ -130,16 +130,16 @@ export function readPngInfo(fileName: string, fileSize: number, bytes: Uint8Arra
     hasICC,
     status: 'ready',
     canConvert: true,
-    summary: `${bitDepth === 16 ? 'RGB48' : 'RGB24'} を ${
+    summary: `${bitDepth === 16 ? 'RGB48' : 'RGB24'} → ${
       bitDepth === 16 ? 'RGBA64' : 'RGBA32'
-    } PNG に変換できます。`,
+    } PNG に変換`,
     details: [
       `PNG / ${width} × ${height}`,
       `${bitDepth}bit / channel`,
       `colorType=2 (${colorTypeName})`,
     ],
     warnings: hasICC ? ['iCCP カラープロファイルはそのまま保持されます。'] : [],
-    outputSummary: `${bitDepth === 16 ? 'RGBA64' : 'RGBA32'} PNG`,
+    outputSummary: `${bitDepth === 16 ? 'RGBA64' : 'RGBA32'} PNGに変換可能`,
     colorType,
     colorTypeName,
     interlace,

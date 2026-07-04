@@ -10,8 +10,21 @@ export function StatusBanner({ message, tone }: StatusBannerProps) {
     return null
   }
 
+  const toneClassName =
+    tone === 'success'
+      ? 'theme-status-success'
+      : tone === 'warning'
+        ? 'theme-status-warning'
+        : tone === 'error'
+          ? 'theme-status-error'
+          : 'theme-status-info'
+
   return (
-    <p className={`status-banner status-banner--${tone}`} role="status" aria-live="polite">
+    <p
+      className={`theme-status-banner ${toneClassName}`}
+      role="status"
+      aria-live="polite"
+    >
       {message}
     </p>
   )

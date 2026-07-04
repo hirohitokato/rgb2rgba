@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import './App.css'
+import { useEffect, useRef, useState } from 'react'
 import {
   analyzeImageFile,
   convertImageToRgbaPng,
@@ -30,6 +29,10 @@ function App() {
   const [dragWarning, setDragWarning] = useState<string | null>(null)
   const [isConverting, setIsConverting] = useState(false)
   const [preparedDownload, setPreparedDownload] = useState<PreparedDownload | null>(null)
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const dragDepthRef = useRef(0)
+  const previewUrlRef = useRef<string | null>(null)
 
   async function loadFile(fileList: FileList | File[]) {
     const [file, ...rest] = Array.from(fileList)
@@ -47,6 +50,15 @@ function App() {
     )
     setStatus(null)
     setPreparedDownload(null)
+
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current)
+      previewUrlRef.current = null
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(file)
+    previewUrlRef.current = nextPreviewUrl
+    setPreviewUrl(nextPreviewUrl)
 
     const bytes = new Uint8Array(await file.arrayBuffer())
     const analysis = await analyzeImageFile(file, bytes)
@@ -123,17 +135,118 @@ function App() {
     void handleConvert()
   }
 
-  return (
-    <main className="app-shell">
-      <div className="app-shell__backdrop" aria-hidden="true" />
+  useEffect(() => {
+    function hasFiles(event: DragEvent) {
+      return Array.from(event.dataTransfer?.types ?? []).includes('Files')
+    }
 
-      <section className="hero-panel">
-        <p className="hero-panel__eyebrow">RGB to RGBA / browser-only</p>
-        <h1>RGB to RGBA Converter</h1>
-        <p className="hero-panel__lead">
-          指定したPNG/JPG画像をRGBA形式に変換し、アルファ付きPNGとして保存します。
-         PNG画像はiCCPを保持し、JPGはsRGBに変換したRGBA PNG画像に変換して書き出します。
-        </p>
+    function handleWindowDragEnter(event: DragEvent) {
+      if (isConverting || !hasFiles(event)) {
+        return
+      }
+
+      event.preventDefault()
+      dragDepthRef.current += 1
+      setIsDraggingFiles(true)
+    }
+
+    function handleWindowDragOver(event: DragEvent) {
+      if (isConverting || !hasFiles(event)) {
+        return
+      }
+
+      event.preventDefault()
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'copy'
+      }
+      setIsDraggingFiles(true)
+    }
+
+    function handleWindowDragLeave(event: DragEvent) {
+      if (isConverting || !hasFiles(event)) {
+        return
+      }
+
+      event.preventDefault()
+      dragDepthRef.current = Math.max(0, dragDepthRef.current - 1)
+
+      if (dragDepthRef.current === 0) {
+        setIsDraggingFiles(false)
+      }
+    }
+
+    function handleWindowDrop(event: DragEvent) {
+      if (!hasFiles(event)) {
+        return
+      }
+
+      event.preventDefault()
+      dragDepthRef.current = 0
+      setIsDraggingFiles(false)
+
+      if (isConverting || !event.dataTransfer?.files.length) {
+        return
+      }
+
+      void loadFile(event.dataTransfer.files)
+    }
+
+    window.addEventListener('dragenter', handleWindowDragEnter)
+    window.addEventListener('dragover', handleWindowDragOver)
+    window.addEventListener('dragleave', handleWindowDragLeave)
+    window.addEventListener('drop', handleWindowDrop)
+
+    return () => {
+      window.removeEventListener('dragenter', handleWindowDragEnter)
+      window.removeEventListener('dragover', handleWindowDragOver)
+      window.removeEventListener('dragleave', handleWindowDragLeave)
+      window.removeEventListener('drop', handleWindowDrop)
+      dragDepthRef.current = 0
+    }
+  }, [isConverting])
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current)
+      }
+    }
+  }, [])
+
+  return (
+    <main className="theme-app-shell">
+      {isDraggingFiles ? (
+        <div className="theme-drop-overlay">
+          <div className="theme-drop-frame">
+            <div className="px-8 text-center">
+              <p className="theme-display-eyebrow">Drop anywhere</p>
+              <p className="theme-display-subtitle mt-4 text-[clamp(1.8rem,4vw,2.7rem)] leading-[1.05]">
+                画像をドロップ
+              </p>
+              <p className="theme-text-soft mt-4 text-[0.96rem] leading-7">
+                ドラッグしている画像をドロップして読み込んでください。
+              </p>
+              <p className="theme-text-dim mt-2 text-[0.88rem]">
+                PNG (RGB/RGBA, 8/16bit) / JPEG
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="theme-app-backdrop" aria-hidden="true" />
+
+      <section className="theme-surface-hero">
+        <p className="theme-display-eyebrow">RGB to RGBA / browser-only</p>
+        <h1 className="theme-display-title">
+          RGB to RGBA Converter
+        </h1>
+        <div className="theme-surface-hero-subtle">
+          <p className="theme-text-soft m-0 w-full text-[0.98rem] leading-8">
+            PNG/JPG画像をRGBA形式のPNGに変換します。PNG画像の場合はiCCPを保持し、JPGはsRGBへ変換後にPNG画像に変換します。<br/>
+            ※フロントエンドのみで動作し、サーバーに画像を送信することはありません。
+          </p>
+        </div>
       </section>
 
       <DropZone
@@ -148,6 +261,7 @@ function App() {
       <ConversionPanel
         file={appState?.file ?? null}
         analysis={appState?.analysis ?? null}
+        previewUrl={previewUrl}
         isConverting={isConverting}
         hasConvertedOutput={preparedDownload !== null}
         onPrimaryAction={handlePrimaryAction}

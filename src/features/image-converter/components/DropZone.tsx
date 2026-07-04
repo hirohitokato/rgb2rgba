@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 
 type DropZoneProps = {
   disabled: boolean
@@ -8,46 +8,12 @@ type DropZoneProps = {
 
 export function DropZone({ disabled, hint, onSelectFiles }: DropZoneProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
 
   return (
-    <section
-      className={`drop-zone${isDragging ? ' drop-zone--active' : ''}${
-        disabled ? ' drop-zone--disabled' : ''
-      }`}
-      onClick={() => {
-        if (!disabled) {
-          inputRef.current?.click()
-        }
-      }}
-      onDragOver={(event) => {
-        event.preventDefault()
-        if (!disabled) {
-          setIsDragging(true)
-        }
-      }}
-      onDragLeave={() => setIsDragging(false)}
-      onDrop={(event) => {
-        event.preventDefault()
-        setIsDragging(false)
-
-        if (!disabled) {
-          void onSelectFiles(event.dataTransfer.files)
-        }
-      }}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-      onKeyDown={(event) => {
-        if (!disabled && (event.key === 'Enter' || event.key === ' ')) {
-          event.preventDefault()
-          inputRef.current?.click()
-        }
-      }}
-      aria-disabled={disabled}
-    >
+    <section className="theme-surface-section">
       <input
         ref={inputRef}
-        className="drop-zone__input"
+        className="hidden"
         type="file"
         accept=".png,.jpg,.jpeg,image/png,image/jpeg"
         onChange={(event) => {
@@ -60,8 +26,26 @@ export function DropZone({ disabled, hint, onSelectFiles }: DropZoneProps) {
         }}
       />
 
-      <p className="drop-zone__title">ここに画像をドロップ、またはクリックして選択</p>
-      <p className="drop-zone__hint">{hint}</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="theme-text-main m-0 text-[1rem]">画像を選択して変換を開始</p>
+          <p className="theme-text-dim mt-2 text-[0.9rem] leading-7">
+            ボタンからファイルを選ぶか、画像を画面内にドロップしてください。
+          </p>
+          <p className="theme-text-dim mt-1 text-[0.85rem]">{hint}</p>
+        </div>
+
+        <button
+          type="button"
+          className="theme-primary-button shrink-0"
+          disabled={disabled}
+          onClick={() => {
+            inputRef.current?.click()
+          }}
+        >
+          ファイルを選択する
+        </button>
+      </div>
     </section>
   )
 }
