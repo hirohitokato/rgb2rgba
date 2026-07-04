@@ -244,7 +244,7 @@ function App() {
           RGB to RGBA Converter
         </h1>
         <div className="theme-surface-hero-subtle">
-          <p className="theme-text-soft m-0 w-full text-[0.98rem] leading-8">
+          <p className="theme-text-soft m-0 w-full text-[0.78rem] leading-6">
             PNG/JPG画像をRGBA形式のPNGに変換します。PNG画像の場合はiCCPを保持し、JPGはsRGBへ変換後にPNG画像に変換します。<br/>
             ※フロントエンドのみで動作し、サーバーに画像を送信することはありません。
           </p>
