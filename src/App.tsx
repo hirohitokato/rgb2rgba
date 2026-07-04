@@ -11,6 +11,8 @@ import { ConversionPanel } from './features/image-converter/components/Conversio
 import { DropZone } from './features/image-converter/components/DropZone'
 import { StatusBanner } from './features/image-converter/components/StatusBanner'
 
+declare const __APP_VERSION__: string
+
 type AppState = {
   file: File
   analysis: AnalyzedImage
@@ -266,6 +268,24 @@ function App() {
         hasConvertedOutput={preparedDownload !== null}
         onPrimaryAction={handlePrimaryAction}
       />
+
+      <footer className="theme-footer-shell" aria-label="Application footer">
+        <span>{`v${__APP_VERSION__}`}</span>
+        <span className="theme-footer-separator" aria-hidden="true" />
+        <span>Copyright (c) 2026 Kato Hirohito</span>
+        <span className="theme-footer-separator" aria-hidden="true" />
+        <a
+          className="theme-footer-link"
+          href="https://github.com/hirohitokato/rgb2rgba"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="GitHub repository"
+        >
+          <svg className="h-4.5 w-4.5" viewBox="0 0 19 19" aria-hidden="true">
+            <use href="/icons.svg#github-icon" />
+          </svg>
+        </a>
+      </footer>
     </main>
   )
 }

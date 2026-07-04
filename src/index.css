@@ -167,6 +167,30 @@ body {
     color: var(--color-app-text);
   }
 
+  .theme-footer-shell {
+    @apply fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full border px-4 py-2 text-[0.77rem] backdrop-blur-md sm:bottom-5;
+    border-color: var(--color-app-line-strong);
+    background-color: rgba(12, 18, 15, 0.84);
+    color: var(--color-app-text-soft);
+    box-shadow: var(--shadow-app-button);
+  }
+
+  .theme-footer-separator {
+    @apply h-3.5 w-px;
+    background-color: rgba(115, 239, 173, 0.28);
+  }
+
+  .theme-footer-link {
+    @apply inline-flex h-7 w-7 items-center justify-center rounded-full transition duration-150;
+    color: var(--color-app-text-soft);
+  }
+
+  .theme-footer-link:hover,
+  .theme-footer-link:focus-visible {
+    color: var(--color-app-accent);
+    background-color: rgba(110, 231, 168, 0.1);
+  }
+
   .theme-label {
     @apply mb-2 text-[0.8rem] uppercase tracking-[0.16em];
     color: var(--color-app-accent);
